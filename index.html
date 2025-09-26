@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتب ربيعة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            direction: rtl;
+            text-align: right;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #212529;
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+            font-weight: 700;
+        }
+
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        #searchInput {
+            padding: 15px 25px;
+            width: 85%;
+            max-width: 500px;
+            font-size: 18px;
+            border: 1px solid #ced4da;
+            border-radius: 30px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        #searchInput:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 30px;
+            width: 85%;
+            max-width: 500px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        #results-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #c3e6cb;
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 20px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .result-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .result-block .name-title {
+            margin: 0;
+            font-size: 1.2em;
+            color: #007bff;
+            font-weight: 700;
+        }
+
+        .result-block .person-name {
+            margin: 5px 0 15px 0;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #212529;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .similar-name-note {
+            color: #868e96;
+            font-style: italic;
+            font-size: 0.85em;
+            display: block;
+        }
+        
+        .hours-section p {
+            margin: 0;
+            padding: 0;
+            font-size: 1em;
+            color: #555;
+        }
+
+        .hours-section p:first-child {
+            margin-top: 10px;
+        }
+
+        .no-results {
+            color: #dc3545;
+            text-align: center;
+            padding: 30px;
+            background-color: #fff0f0;
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            margin-top: 30px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .no-results h2 {
+            margin-top: 0;
+            color: #dc3545;
+            font-weight: 700;
+        }
+
+        .no-results p {
+            margin-bottom: 5px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>مكتب ربيعة</h1>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="ابحث عن اسم..." onkeyup="handleSearch(event)">
+            <button onclick="search()">بحث</button>
+        </div>
+
+        <div id="results-container">
+            </div>
+    </div>
+
+    <script>
+        // قاعدة البيانات الخاصة بك
+        const namesData = [
+            { mainName: 'نايف مخلف قراض', similarNames: [] },
+            { mainName: 'احمد محمد احمد انعيم', similarNames: [] },
+            { mainName: 'مزاحم نايف فهيد', similarNames: [] },
+            { mainName: 'عبد الحافظ همز هويدي الهوا', similarNames: [] },
+            { mainName: 'علي ادخيل اعواد الطعان', similarNames: [] },
+            { mainName: 'محمد علي محمد الهيمص', similarNames: [] },
+            { mainName: 'قصاب مؤيد حمد المشعان', similarNames: [] },
+            { mainName: 'حمود هويدي عبد', similarNames: [] },
+            { mainName: 'ابراهيم علي عبد الله', similarNames: [] },
+            { mainName: 'هاني حمد مفلح سطم', similarNames: [] },
+            { mainName: 'شاهين صالح عكيل', similarNames: [] },
+            { mainName: 'بادي خالد دافي جزاع', similarNames: [] },
+            { mainName: 'علي محمد الياس البهار', similarNames: [] },
+            { mainName: 'ماجد طبيل دهلوس', similarNames: [] },
+            { mainName: 'مزيد مطير محمد ام شعيلي', similarNames: [] },
+            { mainName: 'يوسف خلف حسين السعيدان', similarNames: [] },
+            { mainName: 'سليمان شعيب سعود', similarNames: [] },
+            { mainName: 'عامر مرعي حسن الفرحات', similarNames: [] },
+            { mainName: 'كامل يونس ذنون الناصيف', similarNames: [] },
+            { mainName: 'سالم حسين علي', similarNames: [] },
+            { mainName: 'تركي عايد حسن', similarNames: [] },
+            { mainName: 'عبد الرزاق محمد خضير', similarNames: [] },
+            { mainName: 'فرحان حريفان جرو', similarNames: [] },
+            { mainName: 'ياسين احمد صالح', similarNames: [] },
+            { mainName: 'سطم فزع بنيان', similarNames: [] },
+            { mainName: 'احمد طلعت نعمان', similarNames: [] },
+            { mainName: 'يوسف محمود احمد', similarNames: [] },
+            { mainName: 'محمد عبد محمد', similarNames: [] },
+            { mainName: 'عبد المجيد محمد حسين', similarNames: [] },
+            { mainName: 'صعب سالم شريده', similarNames: [] },
+            { mainName: 'ريكان فارس اخضير', similarNames: [] },
+            { mainName: 'ابراهيم نعمان رشيد', similarNames: [] },
+            { mainName: 'قصي سالم جميل', similarNames: [] },
+            { mainName: 'احمد سعيد سلطان', similarNames: [] },
+            { mainName: 'محمد غازي مطيران', similarNames: [] },
+            { mainName: 'خالد حماد عوده', similarNames: [] },
+            { mainName: 'خليل ابراهيم وادي', similarNames: [] },
+            { mainName: 'عزيز حضيري علوان', similarNames: [] },
+            { mainName: 'غزاي امهيدي زيد', similarNames: [] },
+            { mainName: 'عبدالكريم فلاح مثور', similarNames: [] },
+            { mainName: 'مهند غانم رشيد الملايونس', similarNames: [] },
+            { mainName: 'احمد عبد الحكيم جدوع', similarNames: [] },
+            { mainName: 'ماجد محمد عذاب', similarNames: [] },
+            { mainName: 'عيد حامد معيوف', similarNames: [] },
+            { mainName: 'خالد نهير عابر', similarNames: [] },
+            { mainName: 'بادي نايف اروميح', similarNames: [] },
+            { mainName: 'نواف فرحان نادر', similarNames: [] },
+            { mainName: 'فرحان ينديع خلف', similarNames: [] },
+            { mainName: 'حامد دحل حطم', similarNames: [] },
+            { mainName: 'الياس خضير علي', similarNames: [] },
+            { mainName: 'فواز امهيدي زيد', similarNames: [] },
+            { mainName: 'احمد محمد جدوع', similarNames: [] },
+            { mainName: 'ابراهيم محمد علي', similarNames: [] },
+            { mainName: 'محمد خزيم غدير', similarNames: [] },
+            { mainName: 'طلال سماعيل خزعل', similarNames: [] },
+            { mainName: 'حسين نجم عاشور', similarNames: [] },
+            { mainName: 'منيف امنوخ عايد', similarNames: [] },
+            { mainName: 'فراس جاسم احمد', similarNames: [] },
+            { mainName: 'نواف حسن ابراهيم', similarNames: [] },
+            { mainName: 'طلال صباح سطام', similarNames: [] },
+            { mainName: 'ماجد احمد محمد', similarNames: [] },
+            { mainName: 'ميسر سالم احمد', similarNames: [] },
+            { mainName: 'تحسين طه جاسم', similarNames: [] },
+            { mainName: 'وعدالله حازم حسين', similarNames: [] },
+            { mainName: 'اشرف سعد عبدالله', similarNames: [] },
+            { mainName: 'خالد علي محمود', similarNames: [] },
+            { mainName: 'بغداد طارش محذاف', similarNames: [] },
+            { mainName: 'شاكر محمود سلطان', similarNames: [] },
+            { mainName: 'خلف احمد محيسن', similarNames: [] },
+            { mainName: 'محمداضحوي رمثان', similarNames: [] },
+            { mainName: 'احمد هلو هويدي', similarNames: [] },
+            { mainName: 'مصطفى زيد ذنون', similarNames: [] },
+            { mainName: 'سعدون اميهدي زيد', similarNames: [] },
+            { mainName: 'ممدوح غالي حامد', similarNames: [] },
+            { mainName: 'علي فتحي جميل', similarNames: [] },
+            { mainName: 'شعلان وسمي محمد', similarNames: [] },
+            { mainName: 'عوده اصلبي اجريدي', similarNames: [] },
+            { mainName: 'سلطان احمد علي', similarNames: [] },
+            { mainName: 'جاسم محمد قازي', similarNames: [] },
+            { mainName: 'عنيد متعب اذياب', similarNames: [] },
+            { mainName: 'اورانس زغير دواح', similarNames: [] },
+            { mainName: 'محمد ادريس جرجيس', similarNames: [] },
+            { mainName: 'علي احمد اضحوي', similarNames: [] },
+            { mainName: 'حسين علي محمد', similarNames: [] },
+            { mainName: 'فهد طلاع منوخ', similarNames: [] },
+            { mainName: 'صالح حمد صالح', similarNames: [] },
+            { mainName: 'عارف صابور محيد', similarNames: [] },
+            { mainName: 'صالح عبدالله خضر', similarNames: [] },
+            { mainName: 'علي امهيدي زيد', similarNames: [] },
+            { mainName: 'خضر طه عبد القادر', similarNames: [] },
+            { mainName: 'عمر الياس خضير', similarNames: [] },
+            { mainName: 'عمر هاشم مهيدي', similarNames: [] },
+            { mainName: 'عبد العزيز محمد احمد', similarNames: [] },
+            { mainName: 'شعلان محمد نهير', similarNames: [] },
+            { mainName: 'عبد السلام فتحي حسن', similarNames: [] },
+            { mainName: 'عبدالله طه اسماعيل', similarNames: [] },
+            { mainName: 'راكان فواز احمد', similarNames: [] },
+            { mainName: 'واثق فهيد هطيل', similarNames: [] },
+            { mainName: 'عبد الرحمن محمد رحيل', similarNames: [] },
+            { mainName: 'عبد الرحمن زامل نزال', similarNames: [] },
+            { mainName: 'عصام جميل احمد', similarNames: [] },
+            { mainName: 'عنيزان عسكر مياس', similarNames: [] },
+            { mainName: 'حامد خضر علي', similarNames: [] },
+            { mainName: 'انور عوض خلف', similarNames: [] },
+            { mainName: 'عايد خلف ضاهر', similarNames: [] },
+            { mainName: 'ساجد احمد خلف', similarNames: [] },
+            { mainName: 'حماد اضحوي عنيزان', similarNames: [] },
+            { mainName: 'خالص عواد عويد', similarNames: [] },
+            { mainName: 'علي حسين ابراهيم', similarNames: [] },
+            { mainName: 'عبدالله ارميح حميد', similarNames: [] },
+            { mainName: 'طلال فرحان حمود', similarNames: [] },
+            { mainName: 'جاسم ارميح حمود', similarNames: [] },
+            { mainName: 'سعود كامل عسل', similarNames: [] },
+            { mainName: 'حسن سعيد عليان', similarNames: [] },
+            { mainName: 'جاسم غربي غالب', similarNames: [] },
+            { mainName: 'فارس صالح سفر', similarNames: [] },
+            { mainName: 'محمدحمود احمد', similarNames: [] },
+            { mainName: 'مهنى جماش سلطان', similarNames: [] },
+            { mainName: 'مصطفى معن حازم', similarNames: [] },
+            { mainName: 'علي املح عبد', similarNames: [] },
+            { mainName: 'محمد فهد اضحوي', similarNames: [] },
+            { mainName: 'عامر سالم احمد', similarNames: [] },
+            { mainName: 'طه احمد صالح', similarNames: [] },
+            { mainName: 'محمد طه ياسين', similarNames: [] },
+            { mainName: 'صلاح سلطان فاضل', similarNames: [] },
+            { mainName: 'محمود شاكر محمود', similarNames: [] },
+            { mainName: 'سعدي فؤاد حميد', similarNames: [] },
+            { mainName: 'بهنام شابا الياس', similarNames: [] },
+            { mainName: 'محمد باقر يوسف', similarNames: [] },
+            { mainName: 'انيس عباس عبدالله', similarNames: [] },
+            { mainName: 'بلال جاسم محمد', similarNames: [] },
+            { mainName: 'ابراهيم حسين جاسم', similarNames: [] },
+            { mainName: 'رحمه صبحي حامد', similarNames: [] },
+            { mainName: 'محمد محمود عياش', similarNames: [] },
+            { mainName: 'هاشم كريم عبدالله', similarNames: [] },
+            { mainName: 'مرتضى شامل غازي', similarNames: [] },
+            { mainName: 'شكيف مناور عرسان', similarNames: [] },
+            { mainName: 'سالم فارس شاهين', similarNames: [] },
+            { mainName: 'قصي صالح خضر المستعان', similarNames: [] },
+            { mainName: 'فائز منيف كاظم ال دهش', similarNames: [] },
+            { mainName: 'شفاء شمعون نعوم ال شابي', similarNames: [] },
+            { mainName: 'سعد خزيم غدير', similarNames: [] },
+            { mainName: 'ثائر حميد خليل الطه', similarNames: [] },
+            { mainName: 'طفله دحام ردن', similarNames: [] },
+            { mainName: 'كريم محمود احمد احمد', similarNames: [] },
+            { mainName: 'ناصر محسن علو الاسماعيل', similarNames: [] },
+            { mainName: 'لورنس مصلح شاوي الهوا', similarNames: [] },
+            { mainName: 'عبد الكريم علي ابراهيم العلي', similarNames: [] },
+            { mainName: 'عكيل نافع عكيل سويحل', similarNames: [] },
+            { mainName: 'عمر علي تمو تمو', similarNames: [] },
+            { mainName: 'خالد حميد خليل الطه', similarNames: [] },
+            { mainName: 'حسين احمد عليوي الجاسم', similarNames: [] },
+            { mainName: 'جابر سالم محبس مجبل', similarNames: [] },
+            { mainName: 'خليل بهدل مجبل', similarNames: [] },
+            { mainName: 'حمدان محمد بردي الشمري', similarNames: [] },
+            { mainName: 'حمدان غافل مفلح سطم', similarNames: [] },
+            { mainName: 'محمود ابراهيم احمد العجيبه', similarNames: [] },
+            { mainName: 'مخلف مطلك نهير انهير', similarNames: [] },
+            { mainName: 'احمد ناجي تحيان', similarNames: [] },
+            { mainName: 'احمد خضير زكم حرج', similarNames: [] },
+            { mainName: 'احمد محمد هاو برو', similarNames: [] },
+            { mainName: 'محمد حسنين مرعي الفارس', similarNames: [] },
+            { mainName: 'محمد طلب محمد الهوا', similarNames: [] },
+            { mainName: 'العباس حميد كورز الشمري', similarNames: [] },
+            { mainName: 'محمد عبد الغني حمدي المشعان', similarNames: [] },
+            { mainName: 'مخلف نومان عويد عويد', similarNames: [] },
+            { mainName: 'محمود محمد صالح المحمد', similarNames: [] },
+            { mainName: 'احمد عيد حمود', similarNames: [] },
+            { mainName: 'محمد علي حمود الهوى', similarNames: [] },
+            { mainName: 'اسراء شاكر محمود', similarNames: [] },
+            { mainName: 'احمد خضر حماد الظاهر', similarNames: [] },
+            { mainName: 'محمد تركي غضيب الشعير', similarNames: [] },
+            { mainName: 'انور جزاع اضحوي هدمان', similarNames: [] },
+            { mainName: 'احمد عبيد عسكر الشمري', similarNames: [] },
+            { mainName: 'الياس خضر عبد العبد', similarNames: [] },
+            { mainName: 'احمد حمود مرفوع شهاب', similarNames: [] },
+            { mainName: 'احمد محمد سليمان ال كدو', similarNames: [] }
+        ];
+
+        const morningHours = "9:00 ص إلى 10:00 ص";
+        const eveningHours = "4:30 م إلى 7:00 م";
+
+        function displayResults(results) {
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.innerHTML = '';
+
+            if (results.length > 0) {
+                // إضافة رسالة "تم العثور" في بداية النتائج
+                const successMessage = document.createElement('div');
+                successMessage.classList.add('success-message');
+                successMessage.textContent = 'تم العثور على نتائج مطابقة.';
+                resultsContainer.appendChild(successMessage);
+
+                results.forEach(item => {
+                    const resultBlock = document.createElement('div');
+                    resultBlock.classList.add('result-block');
+                    
+                    const nameHTML = `
+                        <p class="name-title">الاسم</p>
+                        <p class="person-name">
+                            ${item.mainName}
+                            ${item.isSimilar ? `<span class="similar-name-note"> (تم العثور عليه من خلال اسم مشابه: ${item.searchQuery}) </span>` : ''}
+                        </p>
+                    `;
+                    
+                    const hoursHTML = `
+                        <div class="hours-section">
+                            <p><strong>أوقات الدوام:</strong></p>
+                            <p>الدوام الصباحي: ${morningHours}</p>
+                            <p>الدوام المسائي: ${eveningHours}</p>
+                        </div>
+                    `;
+
+                    resultBlock.innerHTML = nameHTML + hoursHTML;
+                    resultsContainer.appendChild(resultBlock);
+                });
+            } else {
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <h2>لم يتم العثور على الاسم</h2>
+                        <p>نعتذر، لم يتم العثور على أي نتائج مطابقة لبحثك. يُرجى محاولة البحث باستخدام اسم أكثر دقة.</p>
+                        <hr style="border-top: 1px solid #f5c6cb; margin: 20px 0;">
+                        <p><strong>مع التقدير، إدارة المكتب</strong></p>
+                        <p><strong>الهاتف:</strong> 07518809908 - 07508817875</p>
+                    </div>
+                `;
+            }
+        }
+
+        function search() {
+            const input = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (input === '') {
+                displayResults([]);
+                return;
+            }
+
+            const foundResults = namesData.filter(item => {
+                const isMainMatch = item.mainName.toLowerCase().includes(input);
+                const isSimilarMatch = item.similarNames.some(similar => similar.toLowerCase().includes(input));
+                
+                return isMainMatch || isSimilarMatch;
+            }).map(item => {
+                return {
+                    ...item,
+                    searchQuery: input,
+                    isSimilar: item.similarNames.some(similar => similar.toLowerCase().includes(input))
+                };
+            });
+
+            displayResults(foundResults);
+        }
+
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                search();
+            }
+        }
+    </script>
+
+</body>
+</html>
